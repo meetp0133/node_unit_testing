@@ -1,11 +1,11 @@
 const sinon = require("sinon")
 const chai = require("chai")
 const expect = chai.expect;
-const student = require("../controller/student.controller")
-const studentObj = new student();
+const {Student} = require("../controller/student.controller")
+const studentObj = new Student();
 
-describe("==============MOCK===============",()=>{
-    it("Count function",()=>{
+describe("==============MOCK===============", () => {
+    it("Count function", () => {
         let mock = sinon.mock(studentObj)
         let expt = mock.expects("getExternal");
         expt.exactly(1);
