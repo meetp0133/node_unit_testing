@@ -4,7 +4,8 @@ const server = require("../server")
 const expect = chai.expect
 chai.should()
 chai.use(chaiHttp)
-
+const bcrypt = require("bcryptjs")
+const userModel = require("../model/user")
 describe("-----------------GET API TESTING--------------------", () => {
     it("Check response", (done) => {
         chai.request(server)
@@ -31,6 +32,7 @@ describe("-----------------GET API TESTING--------------------", () => {
                 done()
             })
     })
+
     it("User check by id", (done) => {
         let userId = "63806fee445c6f154f7fdb4c"
         chai.request(server)
@@ -68,11 +70,11 @@ describe("-----------------POST API TESTING--------------------", () => {
             .end(async (err, res) => {
                 res.should.have.status(200)
                 res.body.should.be.a("object")
-                expect(res.body).to.have.nested.property("data.name").eq("Meet")
-                expect(res.body).to.have.nested.property("data.email").eq("meet@gmail.com")
-                expect(res.body).to.have.nested.property("data.password").eq("123456")
-                expect(res.body).to.have.nested.property("data.phone").eq(9428651333)
-                expect(res.body).to.have.nested.property("data.deviceToken").eq("415412")
+                expect(res.body.data).to.have.nested.property("name").eq("Meet")
+                expect(res.body.data).to.have.nested.property("email").eq("meet@gmail.com")
+                expect(res.body.data).to.have.nested.property("password").eq("123456")
+                expect(res.body.data).to.have.nested.property("phone").eq(9428651333)
+                expect(res.body.data).to.have.nested.property("deviceToken").eq("415412")
                 done()
 
             })
@@ -94,6 +96,81 @@ describe("-----------------POST API TESTING--------------------", () => {
                 res.text.should.be.equal("Please enter proper details");
                 done()
 
+            })
+    })
+
+    it("POST user fields check", (done) => {
+        const data = {
+            "name": "Meet",
+            "email": "meet@gmail.com",
+            "password": "$2a$10$1JUoGME6ZCc.X6MgooZTy.jxKckgP4FMy2JOnL1zaCA7L8UgTELd2",
+            "phone": "9428651333",
+            "deviceToken": "415412"
+        };
+        chai.request(server)
+            .post("/create")
+            .send(data)
+            .end(async (err, res) => {
+                res.should.have.status(200);
+                expect(res.body.data).to.have.nested.property("name").to.be.a("string")
+                expect(res.body.data).to.have.nested.property("email").to.be.a("string")
+                expect(res.body.data).to.have.nested.property("password").to.be.a("string")
+                expect(res.body.data).to.have.nested.property("phone").to.be.a("number")
+                expect(res.body.data).to.have.nested.property("deviceToken").to.be.a("string")
+                done()
+
+            })
+    })
+})
+
+describe("------------------Check login credentials---------------------",()=>{
+    it("Login response and fields check",(done)=>{
+        let data = {
+            "email": "meet@gmail.com",
+            "password": "123456"
+        };
+        chai.request(server)
+            .post("/log-in")
+            .send(data)
+            .end((err,res)=>{
+                res.should.have.status(200)
+                res.body.should.be.a("object")
+                expect(res.body).to.have.all.keys("token","message","data")
+                expect(res.body).to.have.nested.property("data.Email")
+                expect(res.body).to.have.nested.property("data.Email").eq("meet@gmail.com")
+                done()
+            })
+    })
+
+    it("Login email and empty fields check",(done)=>{
+        let data = {
+            "email": "",
+            "password": "123456"
+        };
+        chai.request(server)
+            .post("/log-in")
+            .send(data)
+            .end((err,res)=>{
+                res.should.have.status(400)
+                res.body.should.be.a("object")
+                expect(res.body).to.have.nested.property("message").eq("Email or Password invalid..!!")
+                done()
+            })
+    })
+
+    it("Login password and empty fields check",(done)=>{
+        let data = {
+            "email": "meet@gmail.cmom",
+            "password": ""
+        };
+        chai.request(server)
+            .post("/log-in")
+            .send(data)
+            .end((err,res)=>{
+                res.should.have.status(400)
+                res.body.should.be.a("object")
+                expect(res.body).to.have.nested.property("message").eq("Email or Password invalid..!!")
+                done()
             })
     })
 })
